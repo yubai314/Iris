@@ -1,16 +1,18 @@
-# iris
+# Iris
 
 **in-app runtime interface for semantic control**
+
+一种介于 MCP 与原生 CLI 之间的应用内语义控制协议插件。
 
 ---
 
 大多数让 LLM 操控桌面应用的方案，本质上是在教模型看图说话——截图、识别像素、猜按钮在哪、模拟鼠标点击、再截图确认。每一步都是猜测，每一步都要等待，UI 改版就得从头来过。
 
-iris 的出发点不同。
+Iris 的出发点不同。
 
 现代桌面应用的每一次用户操作，最终都不是"点了某个像素"，而是触发了一个结构化调用，经过 IPC 通道落在后端 handler 上。这个调用是有类型的、有参数的、有语义的。它早就在那里了。
 
-iris 的核心主张只有一句话：
+Iris 的核心主张只有一句话：
 
 > **agent 应该只做用户能做的操作，只是速度更快、可以自动化。**
 
@@ -22,19 +24,19 @@ iris 的核心主张只有一句话：
 
 ## 名字
 
-iris 这个名字有三层含义，从外到内依次深入。
+Iris 这个名字有三层含义，从外到内依次深入。
 
 ### 1. Iris，信使女神
 
 在古希腊神话里，Iris 是唯一能在诸神与人类之间自由穿行的信使。她不创造意志，也不做决定——她只是那条连接两个世界的可靠路径。
 
-这正是 iris 在协议层扮演的角色：它站在 agent runtime 和桌面应用之间，把自然语言任务转译成应用内部真实存在的语义操作，把状态变化反馈给 agent。它不替 agent 做决定，也不替应用重写逻辑。它是一条忠实的通道。
+这正是 Iris 在协议层扮演的角色：它站在 agent runtime 和桌面应用之间，把自然语言任务转译成应用内部真实存在的语义操作，把状态变化反馈给 agent。它不替 agent 做决定，也不替应用重写逻辑。它是一条忠实的通道。
 
 ### 2. iris，虹膜
 
 虹膜是眼睛里调节光线的结构。它不决定你看什么，但决定你怎么看——以什么精度、什么边界、什么对比度。
 
-对 agent 来说，iris 扮演类似的感知边界角色。传统 Computer Use 依赖截图，agent 看到的是压扁后的像素，没有结构，没有语义，没有层次。iris 让 agent 看到的是更接近应用真实世界的模型：
+对 agent 来说，Iris 扮演类似的感知边界角色。传统 Computer Use 依赖截图，agent 看到的是压扁后的像素，没有结构，没有语义，没有层次。Iris 让 agent 看到的是更接近应用真实世界的模型：
 
 - 渲染树中的可见文字、组件 ID 和语义标注
 - readable 命令返回的结构化业务状态
@@ -53,7 +55,7 @@ iris 这个名字有三层含义，从外到内依次深入。
 - 高风险或冲突状态可以被及时暂停
 - 每一次写操作都对应一个可回溯的 commit
 
-iris 不追求让 agent 悄悄接管应用。它让 agent 的行动在界面中可见、可理解、可撤回。
+Iris 不追求让 agent 悄悄接管应用。它让 agent 的行动在界面中可见、可理解、可撤回。
 
 ---
 
@@ -71,11 +73,11 @@ iris 不追求让 agent 悄悄接管应用。它让 agent 的行动在界面中�
 
 这条路适合通用桌面控制，不适合成为高可靠应用内 agent 的主路径。
 
-### Layer 1：应用内语义控制（iris 所在位置）
+### Layer 1：应用内语义控制（Iris 所在位置）
 
 ```
 用户点击按钮 → 前端事件 → IPC command → 后端业务逻辑
-agent action  → iris executor → 同一个 IPC command → 同一个后端业务逻辑
+agent action  → Iris executor → 同一个 IPC command → 同一个后端业务逻辑
 ```
 
 agent 走真实业务路径，不绕过校验，不猜坐标。操作参数是结构化的，可读状态和可写操作由应用声明，每次写操作可以生成 commit，用户操作和 agent 操作在审计中可区分，UI 改版不影响命令语义。
@@ -86,15 +88,15 @@ Layer 1 的安全性不靠策略，靠架构——agent 只能调用被显式暴
 
 让 agent 直接调用数据库、内部 service 或云端 REST API。效率最高，风险也最高——agent 可能绕过 UI 层和业务层的校验、权限和审计语义。
 
-更隐蔽的风险是身份归属。飞书、钉钉这类工作台 CLI 支持以用户 OAuth token 执行操作（`--as user`），即以用户本人的身份代劳。这意味着审计日志里显示的是用户本人，但实际决策者是 LLM。出了事，责任边界模糊。iris 天然没有这个问题——agent 走独立通道，身份是"agent"，与用户操作完全分离，两个 actor 在 commit 历史中清晰可辨。
+更隐蔽的风险是身份归属。飞书、钉钉这类工作台 CLI 支持以用户 OAuth token 执行操作（`--as user`），即以用户本人的身份代劳。这意味着审计日志里显示的是用户本人，但实际决策者是 LLM。出了事，责任边界模糊。Iris 天然没有这个问题——agent 走独立通道，身份是"agent"，与用户操作完全分离，两个 actor 在 commit 历史中清晰可辨。
 
-IRIS 的判断是：前后端分离 GUI 应用的 agent 主路径应该是 Layer 1。Layer 0 可以作为兜底，Layer 2 可以作为特权能力，但不应该替代应用内语义控制。
+Iris 的判断是：前后端分离 GUI 应用的 agent 主路径应该是 Layer 1。Layer 0 可以作为兜底，Layer 2 可以作为特权能力，但不应该替代应用内语义控制。
 
 ---
 
 ## 适用边界
 
-iris 第一阶段的清晰边界：
+Iris 第一阶段的清晰边界：
 
 ```
 前端      Web UI / DOM / React / Vue / Svelte 等
@@ -103,7 +105,7 @@ iris 第一阶段的清晰边界：
 语言      TypeScript-first
 ```
 
-大量现代桌面应用本质上都是前后端分离的 Web app，只是跑在桌面壳里。iris 优先服务这类应用。
+大量现代桌面应用本质上都是前后端分离的 Web app，只是跑在桌面壳里。Iris 优先服务这类应用。
 
 第一版适配顺序：
 
@@ -117,14 +119,14 @@ Flutter、Qt、原生 macOS/Windows 需要重新处理渲染树和可访问性�
 
 ---
 
-## iris Kit 包含什么
+## Iris Kit 包含什么
 
-iris 由三层组成：
+Iris 由三层组成：
 
 ```
-iris Protocol   开发者声明应用语义能力的标准
-iris Plugin     装进宿主应用的运行时，首先实现 Tauri 2 adapter
-iris Harness    让不同 agent 接入 iris 的执行壳与调试环境
+Iris Protocol   开发者声明应用语义能力的标准
+Iris Plugin     装进宿主应用的运行时，首先实现 Tauri 2 adapter
+Iris Harness    让不同 agent 接入 Iris 的执行壳与调试环境
 ```
 
 ### 包结构
@@ -214,7 +216,7 @@ purgeBookmark: writable({
 }),
 ```
 
-**revertable 的默认值是 `false`**——开发者必须显式声明操作是可逆的，iris 才会自动记录 undo 策略。这是保守原则：宁可多确认，不要默认承诺无法兑现的撤回。
+**revertable 的默认值是 `false`**——开发者必须显式声明操作是可逆的，Iris 才会自动记录 undo 策略。这是保守原则：宁可多确认，不要默认承诺无法兑现的撤回。
 
 缺省规则：
 
@@ -302,7 +304,7 @@ domainState   项目移动、文档保存、任务完成——推送给 agent
 
 ## Tauri 第一版接入
 
-Tauri 后端继续使用原有 Rust command，iris 不要求改写业务逻辑。开发者只在 TypeScript 侧声明哪些命令进入 agent action space。
+Tauri 后端继续使用原有 Rust command，Iris 不要求改写业务逻辑。开发者只在 TypeScript 侧声明哪些命令进入 agent action space。
 
 ```ts
 import { defineIrisApp, readable, writable, inverse, z } from "@iris/core";
@@ -355,11 +357,11 @@ IrisProvider 负责渲染树遍历快照、鸢尾光圈 overlay、commit history
 
 **不追求透明拦截**：第一版不自动发现并拦截所有 IPC。显式声明比透明拦截更安全，也更容易解释边界。
 
-**回滚不是万能承诺**：发送消息、付款、硬删除远端数据无法严格撤回。能撤的记录 undo，能补偿的记录 restore payload，不能撤的必须确认。开发者不声明 undo，iris 不假装安全。
+**回滚不是万能承诺**：发送消息、付款、硬删除远端数据无法严格撤回。能撤的记录 undo，能补偿的记录 restore payload，不能撤的必须确认。开发者不声明 undo，Iris 不假装安全。
 
-**prompt injection 会从 UI 内容进入 agent**：渲染文字和业务状态都是不可信输入。iris 的安全不依赖 prompt，依赖 manifest、policy、schema、confirm 和 executor。
+**prompt injection 会从 UI 内容进入 agent**：渲染文字和业务状态都是不可信输入。Iris 的安全不依赖 prompt，依赖 manifest、policy、schema、confirm 和 executor。
 
-**TS 声明和后端可能漂移**：TypeScript 声明是一份 contract。开发模式下 iris 应做 schema probe，DevTools 标出 schema mismatch，CI 提供 `iris check`。
+**TS 声明和后端可能漂移**：TypeScript 声明是一份 contract。开发模式下 Iris 应做 schema probe，DevTools 标出 schema mismatch，CI 提供 `iris check`。
 
 **manifest 可能变得太大**：支持分层能力（core / contextual / discoverable / hidden），避免重复 MCP 工具描述过多的问题。
 
@@ -371,11 +373,11 @@ IrisProvider 负责渲染树遍历快照、鸢尾光圈 overlay、commit history
 
 ## 与现有协议的关系
 
-iris 是面向桌面原生应用的 AG-UI 替代方案，也是面向应用内语义控制的 MCP 替代方案。
+Iris 是面向桌面原生应用的 AG-UI 替代方案，也是面向应用内语义控制的 MCP 替代方案。
 
-AG-UI 解决的是 Web app 的 agent 事件流，假设应用从头按协议构建。iris 解决的是已有桌面应用的语义控制，开发者不需要重写任何业务逻辑。对于前后端分离的桌面 GUI，iris 是更合适的选择。
+AG-UI 解决的是 Web app 的 agent 事件流，假设应用从头按协议构建。Iris 解决的是已有桌面应用的语义控制，开发者不需要重写任何业务逻辑。对于前后端分离的桌面 GUI，Iris 是更合适的选择。
 
-MCP 让 agent 调用外部工具，需要开发者主动暴露命令接口。iris 的目标不同：帮助开发者快速达到 Obsidian CLI 那样的状态——应用内置完整的 agent 控制能力——而无需对外暴露任何命令。开发者可以只允许自己内置的 agent 使用这套接口，完全私有，不接入任何外部生态。
+MCP 让 agent 调用外部工具，需要开发者主动暴露命令接口。Iris 的目标不同：帮助开发者快速达到 Obsidian CLI 那样的状态——应用内置完整的 agent 控制能力——而无需对外暴露任何命令。开发者可以只允许自己内置的 agent 使用这套接口，完全私有，不接入任何外部生态。
 
 ---
 
@@ -383,6 +385,6 @@ MCP 让 agent 调用外部工具，需要开发者主动暴露命令接口。iri
 
 **天机（Tianji）**，一个基于 Tauri 2 的桌面新闻阅读应用。三列看板：未读、稍后看、已归档。
 
-核心验证任务：用户说"把所有科技类卡片移到稍后看"，iris 在后台批量执行，鸢尾光圈标注正在操控的卡片，完成后用户可查看 commit 历史并一键撤回任意操作。
+核心验证任务：用户说"把所有科技类卡片移到稍后看"，Iris 在后台批量执行，鸢尾光圈标注正在操控的卡片，完成后用户可查看 commit 历史并一键撤回任意操作。
 
-同样的任务用 Layer 0 Computer Use 执行需要数分钟，用 iris 执行需要数秒。这个对比是论文的核心量化指标之一。
+同样的任务用 Layer 0 Computer Use 执行需要数分钟，用 Iris 执行需要数秒。这个对比是论文的核心量化指标之一。
