@@ -435,9 +435,13 @@ Iris doesn't try to let the agent silently take over an application. It makes th
 ---
 ---
 
-# Iris
+<div align="center">
 
-**应用内运行时语义控制接口** · 介于 MCP 与原生 CLI 之间的应用内语义控制 SDK
+<h1>Iris</h1>
+
+<p><strong>应用内运行时语义控制接口</strong> · 介于 MCP 与原生 CLI 之间的应用内语义控制 SDK</p>
+
+</div>
 
 ---
 
