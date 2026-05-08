@@ -1,6 +1,6 @@
 # Iris
 
-**in-app runtime interface for semantic control** · 一种介于 MCP 与原生 CLI 之间的应用内语义控制协议插件
+**in-app runtime interface for semantic control** · a protocol plugin between MCP and native CLI
 
 ---
 
