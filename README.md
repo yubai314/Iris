@@ -1,6 +1,6 @@
 # Iris
 
-**in-app runtime interface for semantic control** · a protocol plugin between MCP and native CLI
+**in-app runtime interface for semantic control** · a kit for in-app agent control — between MCP and native CLI
 
 ---
 
@@ -17,43 +17,6 @@ Iris has one core claim:
 It doesn't take screenshots. It doesn't guess coordinates. It doesn't bypass business logic. It helps developers — with minimal changes — bring their app to the state of something like the Obsidian CLI: full agent control built in, no external interfaces exposed, no external ecosystem required. Developers can restrict access to their own built-in agent only, keeping it entirely private.
 
 The first version targets Tauri 2 as the reference implementation, with Electron to follow. TypeScript-first, with platform differences isolated behind adapters.
-
----
-
-## The Name
-
-Iris has three layers of meaning, from outside in.
-
-### 1. Iris, Messenger Goddess
-
-In Greek mythology, Iris was the only messenger who could travel freely between the gods and mortals. She didn't create intent or make decisions — she was simply the reliable path connecting two worlds.
-
-This is exactly the role Iris plays at the protocol layer: it stands between the agent runtime and the desktop app, translating natural language tasks into semantic operations that genuinely exist inside the application, and feeding state changes back to the agent. It doesn't make decisions for the agent, and it doesn't rewrite the app's logic. It is a faithful channel.
-
-### 2. iris, the Pupil
-
-The iris is the structure in the eye that regulates light. It doesn't decide what you see, but it decides how you see — with what precision, what boundaries, what contrast.
-
-For an agent, Iris plays a similar role as a perceptual boundary. Traditional Computer Use relies on screenshots; the agent sees flattened pixels with no structure, no semantics, no hierarchy. Iris lets the agent see a model closer to the app's true world:
-
-- Visible text, component IDs, and semantic annotations from the render tree
-- Structured business state returned by readable commands
-- A filtered domain event stream with all UI noise removed
-
-Not more screenshots — cleaner perception.
-
-### 3. iris, the Violet Highlight
-
-When an agent is manipulating a UI component, a colored highlight ring appears around it — like an iris flower, a blue-violet gradient, distinctive, centered on the visual focus.
-
-This isn't decoration. It's the core mechanism for human-agent collaboration:
-
-- The user knows exactly what the agent is touching
-- Agent actions and user actions are distinguishable in the audit trail
-- High-risk or conflicting states can be paused in time
-- Every write operation maps to a revertable commit
-
-Iris doesn't try to let the agent silently take over an application. It makes the agent's actions visible, understandable, and reversible in the UI.
 
 ---
 
@@ -351,7 +314,7 @@ export function Root() {
 
 ## Known Engineering Challenges
 
-These problems shouldn't be hidden — they should be addressed directly in the protocol and implementation design.
+These problems shouldn't be hidden — they should be addressed directly in the SDK design.
 
 **No transparent interception:** The first version does not automatically discover and intercept all IPC. Explicit declaration is safer than transparent interception and makes boundaries easier to explain.
 
@@ -369,9 +332,9 @@ These problems shouldn't be hidden — they should be addressed directly in the 
 
 ---
 
-## Relationship to Existing Protocols
+## Relationship to Existing Tools
 
-Iris is an alternative to AG-UI for native desktop applications, and an alternative to MCP for in-app semantic control.
+Iris is an SDK alternative to AG-UI for native desktop applications, and fills a different role than MCP for in-app semantic control.
 
 AG-UI addresses the agent event stream for Web apps, assuming the application is built from scratch according to the protocol. Iris addresses semantic control for existing desktop applications — developers don't need to rewrite any business logic. For frontend-backend desktop GUIs, Iris is the more appropriate choice.
 
@@ -388,11 +351,48 @@ Core validation task: the user says "move all tech cards to Read Later." Iris ex
 The same task with Layer 0 Computer Use takes minutes. With Iris, it takes seconds. This comparison is one of the core quantitative metrics of the paper.
 
 ---
+
+## The Name
+
+Iris has three layers of meaning, from outside in.
+
+### 1. Iris, Messenger Goddess
+
+In Greek mythology, Iris was the only messenger who could travel freely between the gods and mortals. She didn't create intent or make decisions — she was simply the reliable path connecting two worlds.
+
+This is exactly the role Iris plays at the SDK layer: it stands between the agent runtime and the desktop app, translating natural language tasks into semantic operations that genuinely exist inside the application, and feeding state changes back to the agent. It doesn't make decisions for the agent, and it doesn't rewrite the app's logic. It is a faithful channel.
+
+### 2. Iris, the Pupil
+
+The iris is the structure in the eye that regulates light. It doesn't decide what you see, but it decides how you see — with what precision, what boundaries, what contrast.
+
+For an agent, Iris plays a similar role as a perceptual boundary. Traditional Computer Use relies on screenshots; the agent sees flattened pixels with no structure, no semantics, no hierarchy. Iris lets the agent see a model closer to the app's true world:
+
+- Visible text, component IDs, and semantic annotations from the render tree
+- Structured business state returned by readable commands
+- A filtered domain event stream with all UI noise removed
+
+Not more screenshots — cleaner perception.
+
+### 3. Iris, the Violet Highlight
+
+When an agent is manipulating a UI component, a colored highlight ring appears around it — like an iris flower, a blue-violet gradient, distinctive, centered on the visual focus.
+
+This isn't decoration. It's the core mechanism for human-agent collaboration:
+
+- The user knows exactly what the agent is touching
+- Agent actions and user actions are distinguishable in the audit trail
+- High-risk or conflicting states can be paused in time
+- Every write operation maps to a revertable commit
+
+Iris doesn't try to let the agent silently take over an application. It makes the agent's actions visible, understandable, and reversible in the UI.
+
+---
 ---
 
 # Iris
 
-**in-app runtime interface for semantic control** · 一种介于 MCP 与原生 CLI 之间的应用内语义控制协议插件
+**应用内运行时语义控制接口** · 介于 MCP 与原生 CLI 之间的应用内语义控制 SDK
 
 ---
 
@@ -409,43 +409,6 @@ Iris 的核心主张只有一句话：
 它不截图，不猜坐标，不绕过业务逻辑。它帮助开发者用最少的改动，让自己的应用达到 Obsidian CLI 那样的状态——内置完整的 agent 控制能力，无需对外暴露接口，无需接入任何外部生态。开发者可以只允许自己的内置 agent 使用，完全私有。
 
 第一版以 Tauri 2 为参考实现，随后适配 Electron。实现语言 TypeScript-first，平台差异通过 adapter 隔离。
-
----
-
-## 名字
-
-Iris 这个名字有三层含义，从外到内依次深入。
-
-### 1. Iris，信使女神
-
-在古希腊神话里，Iris 是唯一能在诸神与人类之间自由穿行的信使。她不创造意志，也不做决定——她只是那条连接两个世界的可靠路径。
-
-这正是 Iris 在协议层扮演的角色：它站在 agent runtime 和桌面应用之间，把自然语言任务转译成应用内部真实存在的语义操作，把状态变化反馈给 agent。它不替 agent 做决定，也不替应用重写逻辑。它是一条忠实的通道。
-
-### 2. iris，虹膜
-
-虹膜是眼睛里调节光线的结构。它不决定你看什么，但决定你怎么看——以什么精度、什么边界、什么对比度。
-
-对 agent 来说，Iris 扮演类似的感知边界角色。传统 Computer Use 依赖截图，agent 看到的是压扁后的像素，没有结构，没有语义，没有层次。Iris 让 agent 看到的是更接近应用真实世界的模型：
-
-- 渲染树中的可见文字、组件 ID 和语义标注
-- readable 命令返回的结构化业务状态
-- 被过滤后的 domain 事件流，去掉所有 UI 噪声
-
-不是更多截图，而是更干净的感知。
-
-### 3. iris，鸢尾花色的提示光
-
-当 agent 正在操控某个 UI 组件，组件周围会出现一圈彩色提示光——像鸢尾花那样，蓝紫色渐变，有辨识度，围绕视觉焦点。
-
-这不是装饰。它是人机协同的核心机制：
-
-- 用户知道 agent 正在动哪里
-- agent 操作和用户手动操作在审计中可以区分
-- 高风险或冲突状态可以被及时暂停
-- 每一次写操作都对应一个可回溯的 commit
-
-Iris 不追求让 agent 悄悄接管应用。它让 agent 的行动在界面中可见、可理解、可撤回。
 
 ---
 
@@ -743,7 +706,7 @@ IrisProvider 负责渲染树遍历快照、鸢尾光圈 overlay、commit history
 
 ## 已知工程问题
 
-这些问题不应该被藏起来，而应该直接进入协议和实现设计。
+这些问题不应该被藏起来，而应该直接进入 SDK 的设计。
 
 **不追求透明拦截**：第一版不自动发现并拦截所有 IPC。显式声明比透明拦截更安全，也更容易解释边界。
 
@@ -761,9 +724,9 @@ IrisProvider 负责渲染树遍历快照、鸢尾光圈 overlay、commit history
 
 ---
 
-## 与现有协议的关系
+## 与现有工具的关系
 
-Iris 是面向桌面原生应用的 AG-UI 替代方案，也是面向应用内语义控制的 MCP 替代方案。
+Iris 是面向桌面原生应用的 AG-UI 替代方案，也在应用内语义控制这个场景下填补了 MCP 未覆盖的空白。
 
 AG-UI 解决的是 Web app 的 agent 事件流，假设应用从头按协议构建。Iris 解决的是已有桌面应用的语义控制，开发者不需要重写任何业务逻辑。对于前后端分离的桌面 GUI，Iris 是更合适的选择。
 
@@ -778,3 +741,40 @@ MCP 让 agent 调用外部工具，需要开发者主动暴露命令接口。Iri
 核心验证任务：用户说"把所有科技类卡片移到稍后看"，Iris 在后台批量执行，鸢尾光圈标注正在操控的卡片，完成后用户可查看 commit 历史并一键撤回任意操作。
 
 同样的任务用 Layer 0 Computer Use 执行需要数分钟，用 Iris 执行需要数秒。这个对比是论文的核心量化指标之一。
+
+---
+
+## 名字
+
+Iris 这个名字有三层含义，从外到内依次深入。
+
+### 1. Iris，信使女神
+
+在古希腊神话里，Iris 是唯一能在诸神与人类之间自由穿行的信使。她不创造意志，也不做决定——她只是那条连接两个世界的可靠路径。
+
+这正是 Iris 在 SDK 层扮演的角色：它站在 agent runtime 和桌面应用之间，把自然语言任务转译成应用内部真实存在的语义操作，把状态变化反馈给 agent。它不替 agent 做决定，也不替应用重写逻辑。它是一条忠实的通道。
+
+### 2. Iris，虹膜
+
+虹膜是眼睛里调节光线的结构。它不决定你看什么，但决定你怎么看——以什么精度、什么边界、什么对比度。
+
+对 agent 来说，Iris 扮演类似的感知边界角色。传统 Computer Use 依赖截图，agent 看到的是压扁后的像素，没有结构，没有语义，没有层次。Iris 让 agent 看到的是更接近应用真实世界的模型：
+
+- 渲染树中的可见文字、组件 ID 和语义标注
+- readable 命令返回的结构化业务状态
+- 被过滤后的 domain 事件流，去掉所有 UI 噪声
+
+不是更多截图，而是更干净的感知。
+
+### 3. Iris，鸢尾花色的提示光
+
+当 agent 正在操控某个 UI 组件，组件周围会出现一圈彩色提示光——像鸢尾花那样，蓝紫色渐变，有辨识度，围绕视觉焦点。
+
+这不是装饰。它是人机协同的核心机制：
+
+- 用户知道 agent 正在动哪里
+- agent 操作和用户手动操作在审计中可以区分
+- 高风险或冲突状态可以被及时暂停
+- 每一次写操作都对应一个可回溯的 commit
+
+Iris 不追求让 agent 悄悄接管应用。它让 agent 的行动在界面中可见、可理解、可撤回。
