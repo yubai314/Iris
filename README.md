@@ -1,8 +1,6 @@
 # Iris
 
-**in-app runtime interface for semantic control**
-
-A protocol plugin for desktop apps that sits between MCP and native CLI.
+**in-app runtime interface for semantic control** · 一种介于 MCP 与原生 CLI 之间的应用内语义控制协议插件
 
 ---
 
@@ -394,9 +392,7 @@ The same task with Layer 0 Computer Use takes minutes. With Iris, it takes secon
 
 # Iris
 
-**in-app runtime interface for semantic control**
-
-一种介于 MCP 与原生 CLI 之间的应用内语义控制协议插件。
+**in-app runtime interface for semantic control** · 一种介于 MCP 与原生 CLI 之间的应用内语义控制协议插件
 
 ---
 
