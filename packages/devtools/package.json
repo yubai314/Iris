@@ -1,0 +1,24 @@
+{
+  "name": "@iris/devtools",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@iris/core": "0.0.0",
+    "@iris/protocol": "0.0.0"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  }
+}

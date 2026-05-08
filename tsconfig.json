@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "paths": {
+      "@iris/protocol": ["./packages/protocol/src/index.ts"],
+      "@iris/core": ["./packages/core/src/index.ts"],
+      "@iris/tauri": ["./packages/tauri/src/index.ts"],
+      "@iris/react": ["./packages/react/src/index.tsx"],
+      "@iris/electron": ["./packages/electron/src/index.ts"],
+      "@iris/harness": ["./packages/harness/src/index.ts"],
+      "@iris/devtools": ["./packages/devtools/src/index.tsx"]
+    }
+  },
+  "include": ["packages/**/*.ts", "packages/**/*.tsx"]
+}
