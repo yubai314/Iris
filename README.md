@@ -439,34 +439,6 @@ Iris doesn't try to let the agent silently take over an application. It makes th
 
 **应用内运行时语义控制接口** · 介于 MCP 与原生 CLI 之间的应用内语义控制 SDK
 
-<div align="center">
-
-<!-- 技术栈 -->
-<p>
-<img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
-<img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React" />
-<img src="https://img.shields.io/badge/Tauri-24C8D8?style=flat-square&logo=tauri&logoColor=white" alt="Tauri" />
-<img src="https://img.shields.io/badge/Electron-47848F?style=flat-square&logo=electron&logoColor=white" alt="Electron" />
-<img src="https://img.shields.io/badge/Zod-3E67B1?style=flat-square&logo=zod&logoColor=white" alt="Zod" />
-</p>
-
-<!-- SDK 定位 -->
-<p>
-<img src="https://img.shields.io/badge/Layer%201-应用内语义控制-7C3AED?style=flat-square" alt="Layer 1 应用内语义控制" />
-<img src="https://img.shields.io/badge/SDK-Tauri%20%7C%20Electron-8B5CF6?style=flat-square" alt="SDK · Tauri | Electron" />
-<img src="https://img.shields.io/badge/MCP%20%E2%86%94%20原生%20CLI-语义桥接层-6366F1?style=flat-square" alt="介于 MCP 与原生 CLI 之间" />
-</p>
-
-<!-- 仓库信息 -->
-<p>
-<img src="https://img.shields.io/github/license/yubai314/Iris?style=flat-square" alt="License" />
-<img src="https://img.shields.io/github/stars/yubai314/Iris?style=flat-square" alt="Stars" />
-<img src="https://img.shields.io/github/last-commit/yubai314/Iris?style=flat-square" alt="Last Commit" />
-<img src="https://img.shields.io/github/repo-size/yubai314/Iris?style=flat-square" alt="Repo Size" />
-</p>
-
-</div>
-
 ---
 
 大多数让 LLM 操控桌面应用的方案，本质上是在教模型看图说话——截图、识别像素、猜按钮在哪、模拟鼠标点击、再截图确认。每一步都是猜测，每一步都要等待，UI 改版就得从头来过。
@@ -814,21 +786,6 @@ MCP 让 agent 调用外部工具，需要开发者主动暴露命令接口。Iri
 核心验证任务：用户说"把所有科技类卡片移到稍后看"，Iris 在后台批量执行，鸢尾光圈标注正在操控的卡片，完成后用户可查看 commit 历史并一键撤回任意操作。
 
 同样的任务用 Layer 0 Computer Use 执行需要数分钟，用 Iris 执行需要数秒。这个对比是论文的核心量化指标之一。
-
----
-
-## ⭐ Star History
-
-<a href="https://star-history.com/#yubai314/Iris&Date">
- <picture>
-  <source media="(prefers-color-scheme: dark)"
-    srcset="https://api.star-history.com/svg?repos=yubai314/Iris&type=Date&theme=dark" />
-  <source media="(prefers-color-scheme: light)"
-    srcset="https://api.star-history.com/svg?repos=yubai314/Iris&type=Date" />
-  <img alt="Star History Chart"
-    src="https://api.star-history.com/svg?repos=yubai314/Iris&type=Date" />
- </picture>
-</a>
 
 ---
 
