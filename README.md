@@ -85,6 +85,43 @@ Iris's position: the primary agent path for frontend-backend GUI apps should be 
 
 ---
 
+## The Name
+
+Iris has three layers of meaning, from outside in.
+
+### 1. Iris, Messenger Goddess
+
+In Greek mythology, Iris was the only messenger who could travel freely between the gods and mortals. She didn't create intent or make decisions — she was simply the reliable path connecting two worlds.
+
+This is exactly the role Iris plays at the SDK layer: it stands between the agent runtime and the desktop app, translating natural language tasks into semantic operations that genuinely exist inside the application, and feeding state changes back to the agent. It doesn't make decisions for the agent, and it doesn't rewrite the app's logic. It is a faithful channel.
+
+### 2. Iris, the Pupil
+
+The iris is the structure in the eye that regulates light. It doesn't decide what you see, but it decides how you see — with what precision, what boundaries, what contrast.
+
+For an agent, Iris plays a similar role as a perceptual boundary. Traditional Computer Use relies on screenshots; the agent sees flattened pixels with no structure, no semantics, no hierarchy. Iris lets the agent see a model closer to the app's true world:
+
+- Visible text, component IDs, and semantic annotations from the render tree
+- Structured business state returned by readable commands
+- A filtered domain event stream with all UI noise removed
+
+Not more screenshots — cleaner perception.
+
+### 3. Iris, the Violet Highlight
+
+When an agent is manipulating a UI component, a colored highlight ring appears around it — like an iris flower, a blue-violet gradient, distinctive, centered on the visual focus.
+
+This isn't decoration. It's the core mechanism for human-agent collaboration:
+
+- The user knows exactly what the agent is touching
+- Agent actions and user actions are distinguishable in the audit trail
+- High-risk or conflicting states can be paused in time
+- Every write operation maps to a revertable commit
+
+Iris doesn't try to let the agent silently take over an application. It makes the agent's actions visible, understandable, and reversible in the UI.
+
+---
+
 ## Scope
 
 Iris's clear boundaries for the first phase:
@@ -382,40 +419,11 @@ The same task with Layer 0 Computer Use takes minutes. With Iris, it takes secon
 
 ---
 
-## The Name
+## 🤝 Contributors
 
-Iris has three layers of meaning, from outside in.
-
-### 1. Iris, Messenger Goddess
-
-In Greek mythology, Iris was the only messenger who could travel freely between the gods and mortals. She didn't create intent or make decisions — she was simply the reliable path connecting two worlds.
-
-This is exactly the role Iris plays at the SDK layer: it stands between the agent runtime and the desktop app, translating natural language tasks into semantic operations that genuinely exist inside the application, and feeding state changes back to the agent. It doesn't make decisions for the agent, and it doesn't rewrite the app's logic. It is a faithful channel.
-
-### 2. Iris, the Pupil
-
-The iris is the structure in the eye that regulates light. It doesn't decide what you see, but it decides how you see — with what precision, what boundaries, what contrast.
-
-For an agent, Iris plays a similar role as a perceptual boundary. Traditional Computer Use relies on screenshots; the agent sees flattened pixels with no structure, no semantics, no hierarchy. Iris lets the agent see a model closer to the app's true world:
-
-- Visible text, component IDs, and semantic annotations from the render tree
-- Structured business state returned by readable commands
-- A filtered domain event stream with all UI noise removed
-
-Not more screenshots — cleaner perception.
-
-### 3. Iris, the Violet Highlight
-
-When an agent is manipulating a UI component, a colored highlight ring appears around it — like an iris flower, a blue-violet gradient, distinctive, centered on the visual focus.
-
-This isn't decoration. It's the core mechanism for human-agent collaboration:
-
-- The user knows exactly what the agent is touching
-- Agent actions and user actions are distinguishable in the audit trail
-- High-risk or conflicting states can be paused in time
-- Every write operation maps to a revertable commit
-
-Iris doesn't try to let the agent silently take over an application. It makes the agent's actions visible, understandable, and reversible in the UI.
+<a href="https://github.com/yubai314/Iris/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=yubai314/Iris" />
+</a>
 
 ---
 
@@ -430,12 +438,4 @@ Iris doesn't try to let the agent silently take over an application. It makes th
   <img alt="Star History Chart"
     src="https://api.star-history.com/svg?repos=yubai314/Iris&type=Date" />
  </picture>
-</a>
-
----
-
-## 🤝 Contributors
-
-<a href="https://github.com/yubai314/Iris/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=yubai314/Iris" />
 </a>
