@@ -34,17 +34,17 @@
 
 ---
 
-Most approaches to LLM-driven desktop control are fundamentally teaching a model to read pictures — take a screenshot, identify pixels, guess where the button is, simulate a mouse click, take another screenshot to confirm. Every step is a guess. Every step requires waiting. A UI redesign means starting over.
+Most approaches to LLM-driven desktop control are fundamentally teaching a model to read pictures — take a screenshot, spend multimodal tokens on pixels, guess where the button is, simulate a mouse click, then take another screenshot to confirm. The loop works, but it is slow and expensive when the app already knows exactly which command the user meant.
 
-Iris takes a different approach.
+Iris gives developers a different choice.
 
 Every user action in a modern desktop app ultimately isn't "a pixel was clicked" — it triggers a structured call that travels through an IPC channel and lands on a backend handler. That call has types, parameters, and semantics. It was always there.
 
 Iris has one core claim:
 
-> **An agent should only do what a user can do — just faster, and automated.**
+> **An agent should follow the same path a user follows, but under the GUI: the app's own events, IPC commands, and backend handlers.**
 
-It doesn't take screenshots. It doesn't guess coordinates. It doesn't bypass business logic. It helps developers — with minimal changes — bring their app to the state of something like the Obsidian CLI: full agent control built in, no external interfaces exposed, no external ecosystem required. Developers can restrict access to their own built-in agent only, keeping it entirely private.
+It doesn't ask the model to keep rereading pixels. It doesn't guess coordinates. It doesn't bypass business logic. It helps developers — with minimal changes — bring their app to the state of something like the Obsidian CLI: full agent control built in, no external interfaces exposed, no external ecosystem required. Developers can restrict access to their own built-in agent only, keeping it entirely private.
 
 The first version targets Tauri 2 as the reference implementation, with Electron to follow. TypeScript-first, with platform differences isolated behind adapters.
 
@@ -60,9 +60,13 @@ We divide LLM-driven software control into three layers.
 screenshot → vision model → coordinates → mouse simulation → screenshot to confirm
 ```
 
-The advantage is near-zero integration cost. The disadvantages are clear: every step requires a screenshot and inference, with 2–5 seconds of latency per step; bulk operations (reorganizing 50 cards, for example) take minutes; a UI redesign breaks everything; the agent can only see what's in the viewport; operation semantics come from model guesses, not application declarations; there's no structured rollback for mistakes.
+The advantage is near-zero integration cost. The disadvantages are clear: every step burns screenshot tokens and waits for visual inference; bulk operations (reorganizing 50 cards, for example) take minutes; the agent can only see what's in the viewport; operation semantics come from model guesses, not application declarations; there's no structured rollback for mistakes.
 
-This path suits general desktop control. It's not suitable as the primary path for a high-reliability in-app agent.
+This path is a powerful hack, and it will remain useful for general desktop control and as a fallback. But it is not a long-term primary interface for high-reliability in-app agents.
+
+Claude-style computer use is the clearest example of the screenshot loop: the agent sees a virtual screen and drives mouse and keyboard actions. There is already a better intermediate surface for web apps: the DOM and accessibility tree. Browser-oriented agents, including Codex-style page workflows, can attach work to structure, roles, labels, selectors, and element bounds instead of relying only on pixels.
+
+That is a real step forward, especially for pages that expose good semantics. But an accessibility tree is still outside the app's business contract. It can tell an agent that a button exists; it cannot declare that `move_item` is reversible, version-checked, rate-limited, and recorded as an agent commit.
 
 ### Layer 1: In-App Semantic Control (Where Iris Lives)
 
@@ -73,13 +77,17 @@ agent action       → Iris executor  → same IPC command → same backend busi
 
 The agent travels the real business path — no bypassing validation, no guessing coordinates. Operation parameters are structured. Readable state and writable operations are declared by the app. Every write generates a commit. User and agent operations are distinguishable in the audit trail. A UI redesign doesn't affect command semantics.
 
+This is where most production GUI agents are likely to land over the next one to three years: not pixel puppetry, and not unrestricted database access, but an app-owned semantic path below the interface.
+
 Layer 1's security doesn't rely on policy — it relies on architecture. The agent can only call explicitly exposed commands, which are inherently a subset of what a user can do.
 
 ### Layer 2: Direct Data Layer Access
 
-The agent calls the database, internal services, or a cloud REST API directly. Maximum efficiency, maximum risk — the agent may bypass the validation, permissions, and audit semantics of both the UI and business layers.
+The agent calls the database, internal services, or a cloud REST API directly. Parts of the future will move in this direction: it is the most efficient path when the app, data model, permissions, and audit story are all designed for it. Today, for most GUI products, it is still too early and too dangerous as the default path. The agent may bypass the validation, permissions, and audit semantics of both the UI and business layers.
 
-The more subtle risk is identity attribution. Collaboration tools like Feishu and DingTalk support executing operations with a user's OAuth token (`--as user`) — acting as the user themselves. This means the audit log shows the user, but the actual decision-maker was the LLM. When something goes wrong, accountability is murky. Iris has no such problem by design — the agent operates through a dedicated channel, its identity is "agent", completely separate from user operations, and the two actors are clearly distinguishable in the commit history.
+The more subtle risk is identity attribution. Feishu and DingTalk show strong product sense here: they understand that agents need to act where people already work. Obsidian is still the cleanest reference point for app-owned control: a local command surface that makes automation feel native without pretending the app has become an external API platform.
+
+The legal and audit question starts when an agent executes with a user's OAuth token (`--as user`) and the log records the human as the actor, even though the decision came from a model. Iris keeps that boundary explicit by design: the agent operates through a dedicated channel, its identity is "agent", and user operations remain separate from agent operations in the commit history.
 
 Iris's position: the primary agent path for frontend-backend GUI apps should be Layer 1. Layer 0 can serve as a fallback; Layer 2 can serve as a privileged capability — but neither should replace in-app semantic control.
 
@@ -105,13 +113,13 @@ For an agent, Iris plays a similar role as a perceptual boundary. Traditional Co
 - Structured business state returned by readable commands
 - A filtered domain event stream with all UI noise removed
 
-Not more screenshots — cleaner perception.
+Less pixel noise, more app structure.
 
 ### 3. Iris, the Violet Highlight
 
 When an agent is manipulating a UI component, a colored highlight ring appears around it — like an iris flower, a blue-violet gradient, distinctive, centered on the visual focus.
 
-This isn't decoration. It's the core mechanism for human-agent collaboration:
+The ring is there for a practical reason:
 
 - The user knows exactly what the agent is touching
 - Agent actions and user actions are distinguishable in the audit trail
@@ -365,10 +373,11 @@ On the frontend:
 
 ```tsx
 import { IrisProvider } from "@iris/react";
+import { iris } from "./iris";
 
 export function Root() {
   return (
-    <IrisProvider appId="my-app">
+    <IrisProvider app={iris}>
       <App />
     </IrisProvider>
   );
@@ -383,29 +392,31 @@ export function Root() {
 
 These problems shouldn't be hidden — they should be addressed directly in the SDK design.
 
-**No transparent interception:** The first version does not automatically discover and intercept all IPC. Explicit declaration is safer than transparent interception and makes boundaries easier to explain.
+1. **No transparent interception:** The first version does not automatically discover and intercept all IPC. Explicit declaration is safer than transparent interception and makes boundaries easier to explain.
 
-**Rollback is not a universal promise:** Sending a message, making a payment, and hard-deleting remote data cannot be strictly undone. Operations that can be undone record an undo. Operations that can be compensated record a restore payload. Operations that can't be undone must require confirmation. If a developer doesn't declare an undo, Iris doesn't pretend it's safe.
+2. **Rollback is not a universal promise:** Sending a message, making a payment, and hard-deleting remote data cannot be strictly undone. Operations that can be undone record an undo. Operations that can be compensated record a restore payload. Operations that can't be undone must require confirmation. If a developer doesn't declare an undo, Iris doesn't pretend it's safe.
 
-**Prompt injection can enter the agent through UI content:** Rendered text and business state are untrusted input. Iris's security does not rely on prompts — it relies on the manifest, policy, schema, confirm rules, and executor.
+3. **Prompt injection can enter the agent through UI content:** Rendered text and business state are untrusted input. Iris's security does not rely on prompts — it relies on the manifest, policy, schema, confirm rules, and executor.
 
-**TypeScript declarations and the backend may drift:** TypeScript declarations are a contract. In dev mode, Iris should run a schema probe; DevTools will flag schema mismatches; CI provides `iris check`.
+4. **TypeScript declarations and the backend may drift:** TypeScript declarations are a contract. In dev mode, Iris should run a schema probe; DevTools will flag schema mismatches; CI provides `iris check`.
 
-**Manifests can get too large:** Layered capability support (core / contextual / discoverable / hidden) avoids the problem of MCP tool descriptions becoming overly verbose.
+5. **Manifests can get too large:** Layered capability support (core / contextual / discoverable / hidden) avoids the problem of MCP tool descriptions becoming overly verbose.
 
-**Component IDs must be stable:** Elements without stable IDs can be read, but should not serve as anchors for writable operations. Use `data-iris-id` annotations.
+6. **Component IDs must be stable:** Elements without stable IDs can be read, but should not serve as anchors for writable operations. Use `data-iris-id` annotations.
 
-**Protocol versioning from day one:** Manifests and commits include `irisProtocolVersion`, `appSchemaVersion`, and `commandVersion` to prevent history records from becoming invalid when commands are renamed or parameters change.
+7. **Protocol versioning from day one:** Manifests and commits include `irisProtocolVersion`, `appSchemaVersion`, and `commandVersion` to prevent history records from becoming invalid when commands are renamed or parameters change.
 
 ---
 
 ## Relationship to Existing Tools
 
-Iris is an SDK alternative to AG-UI for native desktop applications, and fills a different role than MCP for in-app semantic control.
+Iris is a kit and SDK for in-app semantic control. It is closer in spirit to AG-UI than to a raw automation script: developers add a small runtime, declare a protocol surface, and let agents work through the application instead of around it.
 
-AG-UI addresses the agent event stream for Web apps, assuming the application is built from scratch according to the protocol. Iris addresses semantic control for existing desktop applications — developers don't need to rewrite any business logic. For frontend-backend desktop GUIs, Iris is the more appropriate choice.
+AG-UI is about the event stream between an agent and a user-facing Web application. Iris is about the command path inside frontend-backend desktop applications. It can use a similar developer experience — protocol, runtime, UI hooks — but the target is different: existing Tauri, Electron, and WebView apps whose business logic already lives behind IPC commands.
 
-MCP lets agents call external tools, requiring developers to actively expose command interfaces. Iris has a different goal: to help developers quickly reach the state of something like the Obsidian CLI — full agent control built into the application — without exposing any commands externally. Developers can restrict access to their own built-in agent only, keeping it entirely private and outside any external ecosystem.
+Iris is also not competing with MCP. MCP is excellent for exposing tools, resources, and context to agents outside the application boundary. Those tools can be read-only or writable, depending on what the server exposes. Iris focuses on a narrower question: when an agent writes to a GUI app, how does that write go through the same validation, permissions, conflict checks, and audit trail as a user action?
+
+In practice, MCP can be the read and discovery surface, while Iris provides the app-native write contract. MCP tells an agent what capabilities exist across a workspace; Iris makes sure a state-changing operation inside one app is declared, policy-checked, visible, and revertable when possible.
 
 ---
 
