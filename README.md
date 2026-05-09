@@ -46,6 +46,8 @@ Iris has one job: **translate that structure into something agents can call.**
 
 Agents call Iris. Iris does not drive agents. The intelligence stays with the model; the semantic interface belongs to the application.
 
+> **Planned — Assisted Declaration:** connect Iris to your running app and operate it normally for a few minutes. Iris watches your IPC calls and drafts the action declarations automatically — command names, argument shapes, inferred risk levels. You review the draft, confirm what can be undone, add highlight rules, and ship. The semantic surface writes itself.
+
 ---
 
 ## Three Layers of Computer Use
@@ -82,6 +84,16 @@ Iris's position: the primary agent path for GUI applications should be Layer 1. 
 ---
 
 ## How Iris Works
+
+### What Only Iris Provides
+
+Every MCP server exposes tools. What distinguishes Iris is the semantic safety layer attached to every one of them:
+
+**scope · UI anchor · highlight · confirm · commit · undo · actor · risk · resource version**
+
+These nine properties travel with every operation. An agent cannot call a command outside its declared scope, cannot skip confirmation on a high-risk write, cannot execute a write without generating a commit, and cannot act without its identity recorded as `actor`. A UI redesign cannot break the command surface. A resource version conflict surfaces before execution, not after.
+
+No generic MCP server generator provides this. No openapi-to-mcp tool provides this. This is the moat.
 
 ### The Architecture
 
@@ -404,6 +416,15 @@ batchClassify: writable({
 
 The user sees the ring appear before execution (intent), pulse during execution (active), and resolve when the commit is recorded (done). Three phases, always visible.
 
+For long-running batch operations, Iris emits progress events that the ring reflects — pulsing with each completed step, settling when the batch finishes:
+
+```ts
+// emitted by @iris/core as each step completes
+{ type: "progress", command: "batchMove", completed: 12, total: 50 }
+```
+
+No separate loading state or spinner needed. The ring is the progress indicator.
+
 ### Commit History
 
 Every writable operation produces a commit:
@@ -533,7 +554,9 @@ These problems shouldn't be hidden — they should be addressed directly in the 
 
 In practice, MCP serves well as the discovery surface for capabilities across a workspace. Iris makes sure a state-changing operation inside a specific application is declared, policy-checked, visible, and revertable when the developer says it can be.
 
-**AG-UI** addresses the event stream between an agent and a user-facing web application. Iris addresses the command path inside frontend-backend GUI applications — existing Electron, Tauri, and web SaaS products whose business logic already lives behind typed handlers.
+**AG-UI** addresses the event stream between an agent and a user-facing web application — how the agent's output flows to the UI in real time. Iris and AG-UI are complementary: AG-UI handles the communication layer, Iris handles the control layer. They are not in competition. The violet ring and commit stream in Iris are a visual communication layer in the same spirit as AG-UI; the plan is to align Iris's event protocol with AG-UI's event definitions where they overlap, so developers using both do not face two incompatible event shapes.
+
+**WebMCP / MCP-B** extends MCP to browser-native environments without requiring a local stdio process. Iris plans to export its MCP surface in WebMCP-compatible form so that Iris-enabled web SaaS applications can be reached by agents running entirely in the browser — no companion server required. This is planned but not yet implemented; `@iris/mcp` is designed with this extension in mind.
 
 **Computer Use and browser agents** operate at Layer 0 or through the accessibility tree. They can read structure and roles; they cannot declare that `move_item` is reversible, version-checked, rate-limited, and recorded as an agent commit. Iris is the step past the accessibility tree for applications that want to own their agent surface.
 
