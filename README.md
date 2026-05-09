@@ -3,7 +3,7 @@
 
 <h1>Iris</h1>
 
-<p><strong>in-app runtime interface for semantic control</strong> · a kit for in-app agent control — between MCP and native CLI</p>
+<p><strong>in-app runtime interface for semantic control</strong> · a GUI-to-agent command translator</p>
 
 <!-- Tech Stack -->
 <p>
