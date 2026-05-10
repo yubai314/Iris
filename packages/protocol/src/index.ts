@@ -104,6 +104,12 @@ export interface IrisCommit {
   idempotencyKey?: string;
 }
 
+export interface IrisScopeToken {
+  sessionId: string;
+  enabledIds: string[];
+  issuedAt: string;
+}
+
 export interface IrisWorld {
   manifest: IrisManifest;
   readable: Record<string, unknown>;

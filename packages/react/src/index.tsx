@@ -9,7 +9,7 @@ import React, {
   useState,
 } from "react";
 import type { IrisApp, IrisAction, ExecuteOptions, ExecuteValue } from "@iris/core";
-import type { IrisCommit, IrisResult } from "@iris/protocol";
+import type { IrisCommit, IrisResult, IrisScopeToken } from "@iris/protocol";
 
 // ---------------------------------------------------------------------------
 // Snapshot
@@ -35,11 +35,20 @@ export interface IrisOverlayState {
   setActiveId(id?: string): void;
 }
 
+export interface IrisScopeState {
+  enabledIds: ReadonlySet<string>;
+  toggleId(id: string): void;
+  enableAll(ids: string[]): void;
+  disableAll(): void;
+  generateToken(): IrisScopeToken;
+}
+
 export interface IrisReactContextValue {
   app: IrisApp;
   snapshot: IrisDomSnapshot;
   refreshSnapshot(): IrisDomSnapshot;
   overlay: IrisOverlayState;
+  scope: IrisScopeState;
   /**
    * Execute an action through the app. If the executor returns
    * USER_CONFIRM_REQUIRED and no `confirmed` option is set, a built-in (or
@@ -89,6 +98,7 @@ export function IrisProvider({
   const [activeId, setActiveId] = useState<string | undefined>();
   const [pendingConfirm, setPendingConfirm] = useState<{ command: string } | null>(null);
   const pendingConfirmRef = useRef<PendingConfirm | null>(null);
+  const [enabledIds, setEnabledIds] = useState<ReadonlySet<string>>(new Set());
 
   const askConfirm = useCallback((command: string): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -121,6 +131,34 @@ export function IrisProvider({
     [app, askConfirm],
   );
 
+  const scope = useMemo<IrisScopeState>(
+    () => ({
+      enabledIds,
+      toggleId(id: string) {
+        setEnabledIds((prev) => {
+          const next = new Set(prev);
+          if (next.has(id)) next.delete(id);
+          else next.add(id);
+          return next;
+        });
+      },
+      enableAll(ids: string[]) {
+        setEnabledIds(new Set(ids));
+      },
+      disableAll() {
+        setEnabledIds(new Set());
+      },
+      generateToken(): IrisScopeToken {
+        return {
+          sessionId: crypto.randomUUID(),
+          enabledIds: [...enabledIds],
+          issuedAt: new Date().toISOString(),
+        };
+      },
+    }),
+    [enabledIds],
+  );
+
   const value = useMemo<IrisReactContextValue>(
     () => ({
       app,
@@ -131,9 +169,10 @@ export function IrisProvider({
         return next;
       },
       overlay: { activeId, setActiveId },
+      scope,
       executeWithConfirm,
     }),
-    [activeId, app, executeWithConfirm, snapshot],
+    [activeId, app, executeWithConfirm, scope, snapshot],
   );
 
   return (
@@ -174,6 +213,51 @@ export function useIrisSnapshot(): IrisDomSnapshot {
 
 export function useIrisOverlay(): IrisOverlayState {
   return useIris().overlay;
+}
+
+export function useIrisScope(): IrisScopeState {
+  return useIris().scope;
+}
+
+// ---------------------------------------------------------------------------
+// Iris button
+// ---------------------------------------------------------------------------
+
+export interface IrisButtonProps {
+  irisId: string;
+  className?: string;
+  style?: CSSProperties;
+}
+
+export function IrisButton({
+  irisId,
+  className,
+  style,
+}: IrisButtonProps): React.ReactElement {
+  const { scope } = useIris();
+  const enabled = scope.enabledIds.has(irisId);
+  return (
+    <button
+      type="button"
+      aria-label={enabled ? `iris: disable ${irisId}` : `iris: enable ${irisId}`}
+      data-iris-button={irisId}
+      data-iris-enabled={enabled ? "true" : "false"}
+      className={className}
+      style={{
+        cursor: "pointer",
+        background: "none",
+        border: "none",
+        padding: "2px 4px",
+        fontSize: 11,
+        fontFamily: "system-ui, sans-serif",
+        color: enabled ? "#7c3aed" : "#9ca3af",
+        ...style,
+      }}
+      onClick={() => scope.toggleId(irisId)}
+    >
+      iris {enabled ? "●" : "○"}
+    </button>
+  );
 }
 
 // ---------------------------------------------------------------------------

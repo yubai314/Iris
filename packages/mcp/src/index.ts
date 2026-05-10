@@ -6,12 +6,18 @@ import {
   type Tool,
 } from "@modelcontextprotocol/sdk/types.js";
 import type { IrisApp } from "@iris/core";
-import type { IrisAction } from "@iris/protocol";
+import type { IrisAction, IrisScopeToken } from "@iris/protocol";
 
 export interface IrisMcpServerOptions {
   app: IrisApp;
   name?: string;
   version?: string;
+  /**
+   * Return the current scope token to restrict what the agent can see.
+   * Called on every iris_world request. If null, the agent operates without
+   * scope restrictions (useful during development).
+   */
+  getScopeToken?: () => IrisScopeToken | null;
 }
 
 export interface IrisToolCallResult {
@@ -73,6 +79,7 @@ export async function callTool(
   app: IrisApp,
   name: string,
   args: Record<string, unknown>,
+  scopeToken?: IrisScopeToken | null,
 ): Promise<IrisToolCallResult> {
   const text = (value: unknown): IrisToolCallResult => ({
     content: [{ type: "text", text: JSON.stringify(value, null, 2) }],
@@ -83,7 +90,8 @@ export async function callTool(
   });
 
   if (name === IRIS_WORLD) {
-    return text(await app.getWorld());
+    const world = await app.getWorld();
+    return text({ ...world, scope: scopeToken ?? null });
   }
 
   if (name === IRIS_COMMITS) {
@@ -133,9 +141,11 @@ export function createIrisMcpServer(options: IrisMcpServerOptions): IrisMcpServe
 export class IrisMcpServer {
   private readonly app: IrisApp;
   private readonly server: Server;
+  private readonly getScopeToken: () => IrisScopeToken | null;
 
   constructor(options: IrisMcpServerOptions) {
     this.app = options.app;
+    this.getScopeToken = options.getScopeToken ?? (() => null);
     this.server = new Server(
       { name: options.name ?? "iris", version: options.version ?? "0.1.0" },
       { capabilities: { tools: {} } },
@@ -147,7 +157,7 @@ export class IrisMcpServer {
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: rawArgs = {} } = request.params;
-      return callTool(this.app, name, rawArgs as Record<string, unknown>);
+      return callTool(this.app, name, rawArgs as Record<string, unknown>, this.getScopeToken());
     });
   }
 

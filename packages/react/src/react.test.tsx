@@ -2,7 +2,7 @@ import React from "react";
 import { describe, expect, it } from "vitest";
 import { createRoot } from "react-dom/client";
 import { act } from "react";
-import { collectIrisSnapshot, IrisProvider, useIrisOverlay } from "./index";
+import { collectIrisSnapshot, IrisButton, IrisProvider, useIrisOverlay, useIrisScope } from "./index";
 import { defineIrisApp } from "@iris/core";
 import type { IrisPlatformAdapter } from "@iris/protocol";
 
@@ -70,5 +70,103 @@ describe("@iris/react", () => {
     });
 
     expect(container.querySelector("[data-iris-overlay='item:1']")).not.toBeNull();
+  });
+
+  it("toggles scope ids via useIrisScope", () => {
+    const adapter: IrisPlatformAdapter = {
+      platform: "tauri",
+      invoke: async () => null,
+    };
+    const app = defineIrisApp({ platform: "tauri", adapter, commands: {} });
+    let scopeState: ReturnType<typeof useIrisScope> | null = null;
+
+    function ScopeCapture(): React.ReactElement {
+      scopeState = useIrisScope();
+      return <></>;
+    }
+
+    const container = document.createElement("div");
+    document.body.append(container);
+    const root = createRoot(container);
+
+    act(() => {
+      root.render(
+        <IrisProvider app={app}>
+          <ScopeCapture />
+        </IrisProvider>,
+      );
+    });
+
+    expect(scopeState!.enabledIds.size).toBe(0);
+
+    act(() => { scopeState!.toggleId("card-1"); });
+    expect(scopeState!.enabledIds.has("card-1")).toBe(true);
+
+    act(() => { scopeState!.toggleId("card-1"); });
+    expect(scopeState!.enabledIds.has("card-1")).toBe(false);
+  });
+
+  it("generateToken includes the current enabledIds and a sessionId", () => {
+    const adapter: IrisPlatformAdapter = {
+      platform: "tauri",
+      invoke: async () => null,
+    };
+    const app = defineIrisApp({ platform: "tauri", adapter, commands: {} });
+    let scopeState: ReturnType<typeof useIrisScope> | null = null;
+
+    function ScopeCapture(): React.ReactElement {
+      scopeState = useIrisScope();
+      return <></>;
+    }
+
+    const container = document.createElement("div");
+    document.body.append(container);
+    const root = createRoot(container);
+
+    act(() => {
+      root.render(
+        <IrisProvider app={app}>
+          <ScopeCapture />
+        </IrisProvider>,
+      );
+    });
+
+    act(() => {
+      scopeState!.enableAll(["col-1", "col-2"]);
+    });
+
+    const token = scopeState!.generateToken();
+    expect(token.sessionId).toBeTruthy();
+    expect(token.enabledIds).toEqual(expect.arrayContaining(["col-1", "col-2"]));
+    expect(token.issuedAt).toBeTruthy();
+  });
+
+  it("IrisButton renders enabled/disabled state and toggles on click", () => {
+    const adapter: IrisPlatformAdapter = {
+      platform: "tauri",
+      invoke: async () => null,
+    };
+    const app = defineIrisApp({ platform: "tauri", adapter, commands: {} });
+
+    const container = document.createElement("div");
+    document.body.append(container);
+    const root = createRoot(container);
+
+    act(() => {
+      root.render(
+        <IrisProvider app={app}>
+          <IrisButton irisId="card-1" />
+        </IrisProvider>,
+      );
+    });
+
+    const btn = container.querySelector<HTMLButtonElement>("[data-iris-button='card-1']")!;
+    expect(btn.dataset.irisEnabled).toBe("false");
+
+    act(() => { btn.click(); });
+    expect(btn.dataset.irisEnabled).toBe("true");
+
+    act(() => { btn.click(); });
+    expect(btn.dataset.irisEnabled).toBe("false");
   });
 });

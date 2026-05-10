@@ -96,6 +96,25 @@ describe("callTool — iris_world", () => {
     expect(parsed).toHaveProperty("manifest");
     expect(parsed).toHaveProperty("readable");
   });
+
+  it("includes scope: null when no scope token is provided", async () => {
+    const app = makeApp();
+    const result = await callTool(app, "iris_world", {});
+    const parsed = JSON.parse(result.content[0].text);
+    expect(parsed.scope).toBeNull();
+  });
+
+  it("includes the scope token when provided", async () => {
+    const app = makeApp();
+    const token = {
+      sessionId: "sess-1",
+      enabledIds: ["card-1", "col-2"],
+      issuedAt: new Date().toISOString(),
+    };
+    const result = await callTool(app, "iris_world", {}, token);
+    const parsed = JSON.parse(result.content[0].text);
+    expect(parsed.scope).toEqual(token);
+  });
 });
 
 describe("callTool — iris_commits", () => {
