@@ -5,22 +5,31 @@
 **in-app runtime interface for semantic control** · a GUI-to-agent command translator
 
 <!-- Tech Stack -->
+<p>
 <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
 <img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React" />
-<img src="https://img.shields.io/badge/Tauri-24C8D8?style=flat-square&logo=tauri&logoColor=white" alt="Tauri" />
-<img src="https://img.shields.io/badge/Electron-47848F?style=flat-square&logo=electron&logoColor=white" alt="Electron" />
 <img src="https://img.shields.io/badge/Zod-3E67B1?style=flat-square&logo=zod&logoColor=white" alt="Zod" />
+<img src="https://img.shields.io/badge/MCP-Protocol-0D9488?style=flat-square" alt="MCP Protocol" />
+<img src="https://img.shields.io/badge/Electron-47848F?style=flat-square&logo=electron&logoColor=white" alt="Electron" />
+<img src="https://img.shields.io/badge/Tauri-24C8D8?style=flat-square&logo=tauri&logoColor=white" alt="Tauri" />
+<img src="https://img.shields.io/badge/Server-Web%20SaaS-64748B?style=flat-square" alt="Server / Web SaaS" />
+</p>
 
-<!-- SDK / Kit positioning -->
+<!-- Positioning -->
+<p>
 <img src="https://img.shields.io/badge/Layer%201-In--App%20Semantic%20Control-7C3AED?style=flat-square" alt="Layer 1 In-App Semantic Control" />
-<img src="https://img.shields.io/badge/SDK-Tauri%20%7C%20Electron-8B5CF6?style=flat-square" alt="SDK · Tauri | Electron" />
-<img src="https://img.shields.io/badge/MCP%20%E2%86%94%20Native%20CLI-Semantic%20Bridge-6366F1?style=flat-square" alt="Between MCP and Native CLI" />
+<img src="https://img.shields.io/badge/Architecture-Kit%20%2B%20Runtime-8B5CF6?style=flat-square" alt="Kit + Runtime" />
+<img src="https://img.shields.io/badge/MCP%20Server-Embedded-6366F1?style=flat-square" alt="MCP Server Embedded" />
+<img src="https://img.shields.io/badge/Packages-10-A78BFA?style=flat-square" alt="10 Packages" />
+</p>
 
 <!-- Meta -->
+<p>
 <img src="https://img.shields.io/github/license/yubai314/Iris?style=flat-square" alt="License" />
 <img src="https://img.shields.io/github/stars/yubai314/Iris?style=flat-square" alt="Stars" />
 <img src="https://img.shields.io/github/last-commit/yubai314/Iris?style=flat-square" alt="Last Commit" />
 <img src="https://img.shields.io/github/repo-size/yubai314/Iris?style=flat-square" alt="Repo Size" />
+</p>
 
 [Features](#three-layers-of-computer-use) · [Packages](#whats-in-the-iris-kit) · [Install](#tauri-integration-first-version)
 
