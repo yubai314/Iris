@@ -1,15 +1,19 @@
 import React, { useEffect, useMemo, useState } from "react";
 import type { IrisApp } from "@iris/core";
-import type { IrisError, IrisEvent, IrisManifest, IrisPolicy } from "@iris/protocol";
+import type { IrisError, IrisEvent, IrisHighlight, IrisManifest, IrisPolicy } from "@iris/protocol";
 
 export interface IrisDevtoolsProps {
   app: IrisApp;
   lastError?: IrisError;
+  /** Pass scope.enabledIds from useIrisScope() to see live scope state. */
+  scopeIds?: ReadonlySet<string>;
+  /** Pass overlay.highlights from useIrisOverlay() to see live highlight state. */
+  highlights?: readonly IrisHighlight[];
 }
 
-type Tab = "manifest" | "commits" | "events" | "policy";
+type Tab = "manifest" | "commits" | "events" | "policy" | "scope" | "highlights";
 
-export function IrisDevtools({ app, lastError }: IrisDevtoolsProps): React.ReactElement {
+export function IrisDevtools({ app, lastError, scopeIds, highlights }: IrisDevtoolsProps): React.ReactElement {
   const [activeTab, setActiveTab] = useState<Tab>("manifest");
   const [refreshToken, setRefreshToken] = useState(0);
   const [events, setEvents] = useState<IrisEvent[]>(() => app.getEventLog());
@@ -89,7 +93,7 @@ export function IrisDevtools({ app, lastError }: IrisDevtoolsProps): React.React
     lineHeight: 1.6,
   };
 
-  const TABS: Tab[] = ["manifest", "commits", "events", "policy"];
+  const TABS: Tab[] = ["manifest", "commits", "events", "policy", "scope", "highlights"];
 
   return (
     <section data-iris-devtools style={containerStyle}>
@@ -190,6 +194,48 @@ export function IrisDevtools({ app, lastError }: IrisDevtoolsProps): React.React
             <span style={{ color: "#555" }}>No policy configured.</span>
           ) : (
             <pre style={preStyle}>{JSON.stringify(policy, null, 2)}</pre>
+          )
+        )}
+
+        {activeTab === "scope" && (
+          scopeIds == null ? (
+            <span style={{ color: "#555" }}>
+              Pass <code>scopeIds</code> prop to see live scope state.
+            </span>
+          ) : scopeIds.size === 0 ? (
+            <span style={{ color: "#555" }}>No elements enabled in scope.</span>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {[...scopeIds].map((id) => (
+                <div key={id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ color: "#7c3aed", fontSize: 10 }}>●</span>
+                  <code style={{ color: "#e5e5e5" }}>{id}</code>
+                </div>
+              ))}
+            </div>
+          )
+        )}
+
+        {activeTab === "highlights" && (
+          highlights == null ? (
+            <span style={{ color: "#555" }}>
+              Pass <code>highlights</code> prop to see live highlight state.
+            </span>
+          ) : highlights.length === 0 ? (
+            <span style={{ color: "#555" }}>No active highlights.</span>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {highlights.map((h, i) => (
+                <div key={i} style={{
+                  background: "#1a1a1a", borderRadius: 4, padding: "5px 8px",
+                  borderLeft: `3px solid ${h.phase === "active" ? "#7c3aed" : h.phase === "done" ? "#374151" : "#6d28d9"}`,
+                }}>
+                  <code style={{ color: "#a78bfa" }}>{h.id}</code>
+                  <span style={{ marginLeft: 8, color: "#555", fontSize: 11 }}>{h.phase}</span>
+                  {h.role && <span style={{ marginLeft: 6, color: "#555", fontSize: 11 }}>{h.role}</span>}
+                </div>
+              ))}
+            </div>
           )
         )}
       </div>

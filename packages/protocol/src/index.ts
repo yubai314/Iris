@@ -52,7 +52,7 @@ export interface IrisProgressPayload {
 
 export interface IrisEvent {
   name: string;
-  kind: "domainState" | "uiState" | "progress";
+  kind: "domainState" | "uiState" | "progress" | "highlight";
   payload?: unknown;
   timestamp: string;
 }
@@ -63,6 +63,12 @@ export type IrisHighlightRole = "source" | "target";
 export interface IrisHighlight {
   id: string;
   phase: IrisHighlightPhase;
+  role?: IrisHighlightRole;
+}
+
+/** Returned by a command's `highlight` function — phase is assigned by the execution lifecycle. */
+export interface IrisHighlightTarget {
+  id: string;
   role?: IrisHighlightRole;
 }
 
@@ -78,6 +84,10 @@ export interface IrisManifestCommand {
   confirm?: IrisConfirm;
   argsSchema?: unknown;
   commandVersion?: string;
+  /** Arg names whose values are checked against the scope token's enabledIds. */
+  scopeArgs?: string[];
+  /** Whether this command declares a highlight function (auto-managed by core). */
+  hasHighlight?: boolean;
 }
 
 export interface IrisManifest {

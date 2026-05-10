@@ -11,7 +11,8 @@
       "@iris/mcp": ["./packages/mcp/src/index.ts"],
       "@iris/std": ["./packages/std/src/index.ts"],
       "@iris/test-utils": ["./packages/test-utils/src/index.ts"],
-      "@iris/devtools": ["./packages/devtools/src/index.tsx"]
+      "@iris/devtools": ["./packages/devtools/src/index.tsx"],
+      "@iris/server": ["./packages/server/src/index.ts"]
     }
   },
   "include": ["packages/**/*.ts", "packages/**/*.tsx"]

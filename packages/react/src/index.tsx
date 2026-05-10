@@ -117,11 +117,21 @@ export function IrisProvider({
   const [enabledIds, setEnabledIds] = useState<ReadonlySet<string>>(new Set());
 
   const [progressTick, setProgressTick] = useState(0);
+  const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     return app.subscribeToEvents((event) => {
       if (event.kind === "progress") {
         setProgressTick((n) => n + 1);
+      }
+      if (event.kind === "highlight") {
+        const payload = event.payload as { highlights: IrisHighlight[] };
+        const allDone = payload.highlights.every((h) => h.phase === "done");
+        setHighlightsState(payload.highlights);
+        if (allDone) {
+          if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
+          clearTimerRef.current = setTimeout(() => setHighlightsState([]), 700);
+        }
       }
     });
   }, [app]);

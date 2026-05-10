@@ -22,6 +22,7 @@ export default defineConfig({
       "@iris/mcp": resolve(root, "packages/mcp/src/index.ts"),
       "@iris/std": resolve(root, "packages/std/src/index.ts"),
       "@iris/devtools": resolve(root, "packages/devtools/src/index.tsx"),
+      "@iris/server": resolve(root, "packages/server/src/index.ts"),
     },
   },
 });

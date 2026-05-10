@@ -6,6 +6,8 @@ import {
   type IrisErrorCode,
   type IrisConfirm,
   type IrisEvent,
+  type IrisHighlight,
+  type IrisHighlightTarget,
   type IrisManifest,
   type IrisManifestCommand,
   type IrisPlatform,
@@ -24,6 +26,8 @@ export type {
   IrisActor,
   IrisCommit,
   IrisEvent,
+  IrisHighlight,
+  IrisHighlightTarget,
   IrisManifest,
   IrisPlatform,
   IrisPlatformAdapter,
@@ -67,6 +71,17 @@ export interface WritableCommandConfig<TArgs = unknown> {
   captureAfter?: (context: CommandCaptureContext<TArgs>) => Promise<unknown>;
   getCurrentVersion?: (context: CommandCaptureContext<TArgs>) => Promise<unknown>;
   undo?: (context: UndoContext<TArgs>) => IrisAction;
+  /**
+   * Declare which DOM elements this command affects. Core automatically emits
+   * highlight events (intent → done) around adapter invocation — no manual
+   * overlay.setHighlights() calls needed.
+   */
+  highlight?: (ctx: { args: TArgs }) => IrisHighlightTarget[];
+  /**
+   * Arg names whose string/string-array values are checked against the scope
+   * token's enabledIds before execution. Defaults to ["id", "ids"].
+   */
+  scopeArgs?: string[];
 }
 
 interface InternalReadableCommand<TArgs = unknown, TReturn = unknown>
@@ -284,6 +299,9 @@ export class IrisApp {
     const beforeResult = await this.captureBefore(command, parsed.data);
     if (!beforeResult.ok) return beforeResult;
 
+    const highlightTargets = command.highlight?.({ args: parsed.data }) ?? [];
+    if (highlightTargets.length > 0) this.emitHighlight(highlightTargets, "intent");
+
     let result: unknown;
     try {
       result = await this.adapter.invoke(command.invoke, parsed.data);
@@ -316,6 +334,8 @@ export class IrisApp {
         // Revert can still attempt undo later and report a structured error.
       }
     }
+
+    if (highlightTargets.length > 0) this.emitHighlight(highlightTargets, "done");
 
     const executionResult = ok<ExecuteValue>({ result, commit });
     if (options.idempotencyKey) {
@@ -371,6 +391,16 @@ export class IrisApp {
     });
   }
 
+  private emitHighlight(targets: IrisHighlightTarget[], phase: IrisHighlight["phase"]): void {
+    const highlights: IrisHighlight[] = targets.map((t) => ({ ...t, phase }));
+    this.emitEvent({
+      name: "iris:highlight",
+      kind: "highlight",
+      payload: { highlights },
+      timestamp: new Date().toISOString(),
+    });
+  }
+
   private emitEvent(event: IrisEvent): void {
     this.eventLog.push(event);
     for (const handler of this.eventHandlers) {
@@ -397,6 +427,8 @@ export class IrisApp {
       confirm: command.kind === "writable" ? command.confirm : undefined,
       argsSchema: schemaToJson(command.args),
       commandVersion: command.commandVersion,
+      scopeArgs: command.kind === "writable" ? command.scopeArgs : undefined,
+      hasHighlight: command.kind === "writable" ? command.highlight !== undefined : undefined,
     };
   }
 

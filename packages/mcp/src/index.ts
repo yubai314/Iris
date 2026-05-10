@@ -13,11 +13,17 @@ export interface IrisMcpServerOptions {
   name?: string;
   version?: string;
   /**
-   * Return the current scope token to restrict what the agent can see.
-   * Called on every iris_world request. If null, the agent operates without
-   * scope restrictions (useful during development).
+   * Return the current scope token to restrict what the agent can see and touch.
+   * Called on every iris_world request and before every writable execution.
+   * If null, the agent operates without scope restrictions (useful during development).
    */
   getScopeToken?: () => IrisScopeToken | null;
+  /**
+   * Return a fresh DOM snapshot to include in iris_world. Wire this to an IPC
+   * call from main → renderer (e.g. `ipcMain.handle` that calls collectIrisSnapshot).
+   * If omitted, snapshot is null in the world response.
+   */
+  getSnapshot?: () => unknown | Promise<unknown>;
 }
 
 export interface IrisToolCallResult {
@@ -80,6 +86,7 @@ export async function callTool(
   name: string,
   args: Record<string, unknown>,
   scopeToken?: IrisScopeToken | null,
+  getSnapshot?: () => unknown | Promise<unknown>,
 ): Promise<IrisToolCallResult> {
   const text = (value: unknown): IrisToolCallResult => ({
     content: [{ type: "text", text: JSON.stringify(value, null, 2) }],
@@ -91,7 +98,10 @@ export async function callTool(
 
   if (name === IRIS_WORLD) {
     const world = await app.getWorld();
-    return text({ ...world, scope: scopeToken ?? null });
+    const enabledIds = scopeToken ? new Set(scopeToken.enabledIds) : null;
+    const readable = enabledIds ? filterReadableByScope(world.readable, enabledIds) : world.readable;
+    const snapshot = getSnapshot ? await getSnapshot() : null;
+    return text({ ...world, readable, scope: scopeToken ?? null, snapshot });
   }
 
   if (name === IRIS_COMMITS) {
@@ -115,6 +125,13 @@ export async function callTool(
 
   const confirmed = args._confirmed === true;
   const cleanArgs = withoutConfirmField(args);
+
+  if (scopeToken && scopeToken.enabledIds.length > 0 && cmd.kind === "writable") {
+    const scopeDenied = checkScopeViolation(cleanArgs, cmd.scopeArgs ?? ["id", "ids"], new Set(scopeToken.enabledIds));
+    if (scopeDenied) {
+      return errorResult({ error: { code: "PERMISSION_DENIED", message: scopeDenied } });
+    }
+  }
 
   const action: IrisAction = { command: name, args: cleanArgs };
   const result = await app.execute(action, { actor: "agent", confirmed });
@@ -142,10 +159,12 @@ export class IrisMcpServer {
   private readonly app: IrisApp;
   private readonly server: Server;
   private readonly getScopeToken: () => IrisScopeToken | null;
+  private readonly getSnapshot: (() => unknown | Promise<unknown>) | undefined;
 
   constructor(options: IrisMcpServerOptions) {
     this.app = options.app;
     this.getScopeToken = options.getScopeToken ?? (() => null);
+    this.getSnapshot = options.getSnapshot;
     this.server = new Server(
       { name: options.name ?? "iris", version: options.version ?? "0.1.0" },
       { capabilities: { tools: {} } },
@@ -157,7 +176,7 @@ export class IrisMcpServer {
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: rawArgs = {} } = request.params;
-      return callTool(this.app, name, rawArgs as Record<string, unknown>, this.getScopeToken());
+      return callTool(this.app, name, rawArgs as Record<string, unknown>, this.getScopeToken(), this.getSnapshot);
     });
   }
 
@@ -165,6 +184,45 @@ export class IrisMcpServer {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
   }
+}
+
+function filterReadableByScope(
+  readable: Record<string, unknown>,
+  enabledIds: Set<string>,
+): Record<string, unknown> {
+  const filtered: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(readable)) {
+    if (Array.isArray(value)) {
+      filtered[key] = value.filter(
+        (item) =>
+          typeof item === "object" &&
+          item !== null &&
+          "id" in item &&
+          enabledIds.has(String((item as Record<string, unknown>).id)),
+      );
+    } else {
+      filtered[key] = value;
+    }
+  }
+  return filtered;
+}
+
+function checkScopeViolation(
+  args: Record<string, unknown>,
+  scopeArgNames: string[],
+  enabledIds: Set<string>,
+): string | null {
+  for (const argName of scopeArgNames) {
+    const val = args[argName];
+    if (typeof val === "string" && !enabledIds.has(val)) {
+      return `"${argName}" value "${val}" is not in scope`;
+    }
+    if (Array.isArray(val)) {
+      const out = val.filter((v) => typeof v === "string" && !enabledIds.has(v));
+      if (out.length > 0) return `"${argName}" contains ids not in scope: ${out.join(", ")}`;
+    }
+  }
+  return null;
 }
 
 function buildDescription(
