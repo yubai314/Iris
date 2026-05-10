@@ -1,36 +1,28 @@
-<div align="center">
 <img src="assets/banner.png" alt="Iris" width="660" />
 
-<h1>Iris</h1>
+# Iris
 
-<p><strong>in-app runtime interface for semantic control</strong> · a GUI-to-agent command translator</p>
+**in-app runtime interface for semantic control** · a GUI-to-agent command translator
 
 <!-- Tech Stack -->
-<p>
 <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
 <img src="https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React" />
 <img src="https://img.shields.io/badge/Tauri-24C8D8?style=flat-square&logo=tauri&logoColor=white" alt="Tauri" />
 <img src="https://img.shields.io/badge/Electron-47848F?style=flat-square&logo=electron&logoColor=white" alt="Electron" />
 <img src="https://img.shields.io/badge/Zod-3E67B1?style=flat-square&logo=zod&logoColor=white" alt="Zod" />
-</p>
 
 <!-- SDK / Kit positioning -->
-<p>
 <img src="https://img.shields.io/badge/Layer%201-In--App%20Semantic%20Control-7C3AED?style=flat-square" alt="Layer 1 In-App Semantic Control" />
 <img src="https://img.shields.io/badge/SDK-Tauri%20%7C%20Electron-8B5CF6?style=flat-square" alt="SDK · Tauri | Electron" />
 <img src="https://img.shields.io/badge/MCP%20%E2%86%94%20Native%20CLI-Semantic%20Bridge-6366F1?style=flat-square" alt="Between MCP and Native CLI" />
-</p>
 
 <!-- Meta -->
-<p>
 <img src="https://img.shields.io/github/license/yubai314/Iris?style=flat-square" alt="License" />
 <img src="https://img.shields.io/github/stars/yubai314/Iris?style=flat-square" alt="Stars" />
 <img src="https://img.shields.io/github/last-commit/yubai314/Iris?style=flat-square" alt="Last Commit" />
 <img src="https://img.shields.io/github/repo-size/yubai314/Iris?style=flat-square" alt="Repo Size" />
-</p>
 
-<p><a href="#three-layers-of-computer-use">Features</a> · <a href="#whats-in-the-iris-kit">Packages</a> · <a href="#tauri-integration-first-version">Install</a></p>
-</div>
+[Features](#three-layers-of-computer-use) · [Packages](#whats-in-the-iris-kit) · [Install](#tauri-integration-first-version)
 
 ---
 
