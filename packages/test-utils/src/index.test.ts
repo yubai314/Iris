@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { defineIrisApp, writable, z } from "@iris/core";
-import { createIrisHarness } from "./index";
+import { createIrisTestHarness } from "./index";
 import type { IrisPlatformAdapter } from "@iris/protocol";
 
 function jsonResponse(content: string): Response {
@@ -12,7 +12,7 @@ function jsonResponse(content: string): Response {
   );
 }
 
-describe("@iris/harness", () => {
+describe("@iris/test-utils", () => {
   it("executes valid model actions through the executor", async () => {
     const adapter: IrisPlatformAdapter = {
       platform: "tauri",
@@ -31,7 +31,7 @@ describe("@iris/harness", () => {
     const fetchMock = vi.fn(async () =>
       jsonResponse(JSON.stringify({ type: "action", command: "deleteItem", args: { id: "1" } })),
     );
-    const harness = createIrisHarness({
+    const harness = createIrisTestHarness({
       baseUrl: "https://example.test/v1",
       apiKey: "test",
       model: "test-model",
@@ -51,7 +51,7 @@ describe("@iris/harness", () => {
       adapter: { platform: "tauri", invoke: async () => null },
       commands: {},
     });
-    const harness = createIrisHarness({
+    const harness = createIrisTestHarness({
       baseUrl: "https://example.test/v1",
       apiKey: "test",
       model: "test-model",
@@ -70,7 +70,7 @@ describe("@iris/harness", () => {
       invoke: vi.fn(async () => null),
     };
     const app = defineIrisApp({ platform: "tauri", adapter, commands: {} });
-    const harness = createIrisHarness({
+    const harness = createIrisTestHarness({
       baseUrl: "https://example.test/v1",
       apiKey: "test",
       model: "test-model",
@@ -92,7 +92,7 @@ describe("@iris/harness", () => {
       invoke: vi.fn(async () => null),
     };
     const app = defineIrisApp({ platform: "tauri", adapter, commands: {} });
-    const harness = createIrisHarness({
+    const harness = createIrisTestHarness({
       baseUrl: "https://example.test/v1",
       apiKey: "test",
       model: "test-model",

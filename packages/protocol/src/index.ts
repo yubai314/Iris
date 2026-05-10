@@ -1,4 +1,4 @@
-export type IrisPlatform = "tauri" | "electron";
+export type IrisPlatform = "tauri" | "electron" | "server";
 
 export type IrisCommandKind = "readable" | "writable";
 

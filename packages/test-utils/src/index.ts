@@ -1,7 +1,7 @@
 import type { IrisApp } from "@iris/core";
 import type { IrisAction, IrisResult } from "@iris/protocol";
 
-export interface IrisHarnessOptions {
+export interface IrisTestHarnessOptions {
   baseUrl: string;
   apiKey: string;
   model: string;
@@ -25,10 +25,6 @@ export interface RunTaskValue {
 export interface RunTaskLoopOptions {
   app: IrisApp;
   instruction: string;
-  /**
-   * Maximum number of LLM → execute steps before stopping.
-   * Defaults to 10.
-   */
   maxSteps?: number;
 }
 
@@ -55,18 +51,17 @@ Output exactly one JSON object per turn.
 Do not invent commands. Use only commands listed in the manifest.
 When the task is complete or no further action is possible, output {"type":"none","reason":"..."}.`;
 
-export function createIrisHarness(options: IrisHarnessOptions): IrisHarness {
-  return new IrisHarness(options);
+export function createIrisTestHarness(options: IrisTestHarnessOptions): IrisTestHarness {
+  return new IrisTestHarness(options);
 }
 
-export class IrisHarness {
-  private readonly options: IrisHarnessOptions;
+export class IrisTestHarness {
+  private readonly options: IrisTestHarnessOptions;
 
-  constructor(options: IrisHarnessOptions) {
+  constructor(options: IrisTestHarnessOptions) {
     this.options = options;
   }
 
-  /** Single-step execution: one LLM call → one execute. */
   async runTask(options: RunTaskOptions): Promise<IrisResult<RunTaskValue>> {
     const manifest = options.app.getManifest();
     const world = await options.app.getWorld();
@@ -108,10 +103,6 @@ export class IrisHarness {
     return { ok: true, value: { modelOutput, execution: execution.value } };
   }
 
-  /**
-   * Multi-step execution loop: repeatedly calls the LLM and executes actions
-   * until the model outputs `{type:"none"}` or `maxSteps` is reached.
-   */
   async runTaskLoop(
     options: RunTaskLoopOptions,
   ): Promise<IrisResult<RunTaskLoopValue>> {
@@ -221,11 +212,11 @@ export class IrisHarness {
   }
 }
 
-export function getIrisHarnessSystemPrompt(): string {
+export function getIrisTestHarnessSystemPrompt(): string {
   return SYSTEM_PROMPT;
 }
 
-export function getIrisHarnessLoopSystemPrompt(): string {
+export function getIrisTestHarnessLoopSystemPrompt(): string {
   return LOOP_SYSTEM_PROMPT;
 }
 
@@ -274,7 +265,7 @@ function invalidOutput(): IrisResult<HarnessModelOutput> {
     ok: false,
     error: {
       code: "MODEL_OUTPUT_INVALID",
-      message: "Model output did not match iris harness schema",
+      message: "Model output did not match iris test harness schema",
     },
   };
 }

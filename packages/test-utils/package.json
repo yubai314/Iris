@@ -1,5 +1,5 @@
 {
-  "name": "@iris/harness",
+  "name": "@iris/test-utils",
   "version": "0.0.0",
   "private": true,
   "type": "module",

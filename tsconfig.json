@@ -8,7 +8,8 @@
       "@iris/tauri": ["./packages/tauri/src/index.ts"],
       "@iris/react": ["./packages/react/src/index.tsx"],
       "@iris/electron": ["./packages/electron/src/index.ts"],
-      "@iris/harness": ["./packages/harness/src/index.ts"],
+      "@iris/mcp": ["./packages/mcp/src/index.ts"],
+      "@iris/test-utils": ["./packages/test-utils/src/index.ts"],
       "@iris/devtools": ["./packages/devtools/src/index.tsx"]
     }
   },
