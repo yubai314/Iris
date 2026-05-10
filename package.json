@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build -w @iris/protocol && npm run build -w @iris/core && npm run build -w @iris/electron && npm run build -w @iris/tauri && npm run build -w @iris/mcp && npm run build -w @iris/react && npm run build -w @iris/devtools && npm run build -w @iris/test-utils",
+    "build": "npm run build -w @iris/protocol && npm run build -w @iris/core && npm run build -w @iris/electron && npm run build -w @iris/tauri && npm run build -w @iris/mcp && npm run build -w @iris/std && npm run build -w @iris/react && npm run build -w @iris/devtools && npm run build -w @iris/test-utils",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },

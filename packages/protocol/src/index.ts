@@ -44,11 +44,26 @@ export interface IrisAction {
   args?: unknown;
 }
 
+export interface IrisProgressPayload {
+  command: string;
+  completed: number;
+  total: number;
+}
+
 export interface IrisEvent {
   name: string;
-  kind: "domainState" | "uiState";
+  kind: "domainState" | "uiState" | "progress";
   payload?: unknown;
   timestamp: string;
+}
+
+export type IrisHighlightPhase = "intent" | "active" | "done";
+export type IrisHighlightRole = "source" | "target";
+
+export interface IrisHighlight {
+  id: string;
+  phase: IrisHighlightPhase;
+  role?: IrisHighlightRole;
 }
 
 export interface IrisManifestCommand {

@@ -4,12 +4,23 @@ import React, {
   type ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 import type { IrisApp, IrisAction, ExecuteOptions, ExecuteValue } from "@iris/core";
-import type { IrisCommit, IrisResult, IrisScopeToken } from "@iris/protocol";
+import type {
+  IrisCommit,
+  IrisHighlight,
+  IrisHighlightPhase,
+  IrisHighlightRole,
+  IrisProgressPayload,
+  IrisResult,
+  IrisScopeToken,
+} from "@iris/protocol";
+
+export type { IrisHighlight, IrisHighlightPhase, IrisHighlightRole };
 
 // ---------------------------------------------------------------------------
 // Snapshot
@@ -31,7 +42,12 @@ export interface IrisDomSnapshot {
 // ---------------------------------------------------------------------------
 
 export interface IrisOverlayState {
+  highlights: readonly IrisHighlight[];
+  setHighlights(highlights: IrisHighlight[]): void;
+  clearHighlights(): void;
+  /** @deprecated use setHighlights */
   activeId?: string;
+  /** @deprecated use setHighlights */
   setActiveId(id?: string): void;
 }
 
@@ -95,10 +111,20 @@ export function IrisProvider({
   renderConfirm,
 }: IrisProviderProps): React.ReactElement {
   const [snapshot, setSnapshot] = useState<IrisDomSnapshot>(() => collectIrisSnapshot());
-  const [activeId, setActiveId] = useState<string | undefined>();
+  const [highlights, setHighlightsState] = useState<IrisHighlight[]>([]);
   const [pendingConfirm, setPendingConfirm] = useState<{ command: string } | null>(null);
   const pendingConfirmRef = useRef<PendingConfirm | null>(null);
   const [enabledIds, setEnabledIds] = useState<ReadonlySet<string>>(new Set());
+
+  const [progressTick, setProgressTick] = useState(0);
+
+  useEffect(() => {
+    return app.subscribeToEvents((event) => {
+      if (event.kind === "progress") {
+        setProgressTick((n) => n + 1);
+      }
+    });
+  }, [app]);
 
   const askConfirm = useCallback((command: string): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -159,6 +185,30 @@ export function IrisProvider({
     [enabledIds],
   );
 
+  const setHighlights = useCallback<IrisOverlayState["setHighlights"]>(
+    (next) => setHighlightsState(next),
+    [],
+  );
+  const clearHighlights = useCallback(() => setHighlightsState([]), []);
+  const legacySetActiveId = useCallback((id?: string) => {
+    setHighlightsState((prev) => {
+      if (!id) return prev.length === 0 ? prev : [];
+      if (prev.length === 1 && prev[0]!.id === id && prev[0]!.phase === "active") return prev;
+      return [{ id, phase: "active" as const }];
+    });
+  }, []);
+
+  const overlay = useMemo<IrisOverlayState>(
+    () => ({
+      highlights,
+      setHighlights,
+      clearHighlights,
+      activeId: highlights.find((h) => h.phase === "active")?.id,
+      setActiveId: legacySetActiveId,
+    }),
+    [highlights, setHighlights, clearHighlights, legacySetActiveId],
+  );
+
   const value = useMemo<IrisReactContextValue>(
     () => ({
       app,
@@ -168,17 +218,17 @@ export function IrisProvider({
         setSnapshot(next);
         return next;
       },
-      overlay: { activeId, setActiveId },
+      overlay,
       scope,
       executeWithConfirm,
     }),
-    [activeId, app, executeWithConfirm, scope, snapshot],
+    [app, executeWithConfirm, overlay, scope, snapshot],
   );
 
   return (
     <IrisContext.Provider value={value}>
       {children}
-      <IrisOverlay activeId={activeId} />
+      <IrisOverlay highlights={highlights} progressTick={progressTick} />
       {pendingConfirm &&
         (renderConfirm ? (
           renderConfirm({
@@ -264,26 +314,72 @@ export function IrisButton({
 // Overlay
 // ---------------------------------------------------------------------------
 
-export function IrisOverlay({ activeId }: { activeId?: string }): React.ReactElement | null {
-  if (!activeId) return null;
+const IRIS_PURPLE = "#7c3aed";
+const IRIS_PURPLE_GLOW = "rgba(124, 58, 237, 0.22)";
+
+function ringStyle(highlight: IrisHighlight): CSSProperties {
+  const { phase, role } = highlight;
+  const isDashed = role === "target";
+  const opacity = phase === "intent" ? 0.55 : phase === "done" ? 0.3 : 1;
+  const animation =
+    phase === "active"
+      ? "iris-pulse 1.1s ease-in-out infinite"
+      : undefined;
+
+  return {
+    position: "fixed",
+    pointerEvents: "none",
+    border: `2px ${isDashed ? "dashed" : "solid"} ${IRIS_PURPLE}`,
+    boxShadow: phase === "active" ? `0 0 0 4px ${IRIS_PURPLE_GLOW}` : undefined,
+    borderRadius: 8,
+    opacity,
+    animation,
+    zIndex: 2147483647,
+    transition: "opacity 0.2s ease",
+  };
+}
+
+function IrisSingleRing({ highlight }: { highlight: IrisHighlight }): React.ReactElement | null {
   const target =
     typeof document === "undefined"
       ? null
-      : document.querySelector<HTMLElement>(`[data-iris-id="${cssEscape(activeId)}"]`);
-  const rect = target?.getBoundingClientRect();
-  const style: CSSProperties = {
-    position: "fixed",
-    pointerEvents: "none",
-    border: "2px solid #7c3aed",
-    boxShadow: "0 0 0 4px rgba(124, 58, 237, 0.22)",
-    borderRadius: 8,
-    zIndex: 2147483647,
-    left: rect?.x ?? 0,
-    top: rect?.y ?? 0,
-    width: rect?.width ?? 0,
-    height: rect?.height ?? 0,
-  };
-  return <div aria-hidden="true" data-iris-overlay={activeId} style={style} />;
+      : document.querySelector<HTMLElement>(`[data-iris-id="${cssEscape(highlight.id)}"]`);
+  if (!target) return null;
+  const rect = target.getBoundingClientRect();
+
+  return (
+    <div
+      aria-hidden="true"
+      data-iris-overlay={highlight.id}
+      data-iris-phase={highlight.phase}
+      data-iris-role={highlight.role ?? "default"}
+      style={{
+        ...ringStyle(highlight),
+        left: rect.x,
+        top: rect.y,
+        width: rect.width,
+        height: rect.height,
+      }}
+    />
+  );
+}
+
+export function IrisOverlay({
+  highlights,
+  progressTick: _progressTick,
+}: {
+  highlights: readonly IrisHighlight[];
+  progressTick?: number;
+}): React.ReactElement | null {
+  if (highlights.length === 0) return null;
+  return (
+    <>
+      <style>{`@keyframes iris-pulse{0%,100%{box-shadow:0 0 0 2px ${IRIS_PURPLE_GLOW}}50%{box-shadow:0 0 0 6px ${IRIS_PURPLE_GLOW}}}`}</style>
+      {highlights.map((h) => (
+        <IrisSingleRing key={`${h.id}-${h.phase}`} highlight={h} />
+      ))}
+    </>
+  );
 }
 
 // ---------------------------------------------------------------------------

@@ -82,6 +82,7 @@ interface InternalWritableCommand<TArgs = unknown>
 type InternalCommand = InternalReadableCommand<any, any> | InternalWritableCommand<any>;
 
 export type IrisCommandRegistry = Record<string, InternalCommand>;
+export type IrisCommand = InternalCommand;
 
 export interface DefineIrisAppOptions {
   platform: IrisPlatform;
@@ -359,6 +360,15 @@ export class IrisApp {
       commit.linkedCommitId = result.value.commit.commitId;
     }
     return result;
+  }
+
+  emitProgress(command: string, completed: number, total: number): void {
+    this.emitEvent({
+      name: "iris:progress",
+      kind: "progress",
+      payload: { command, completed, total },
+      timestamp: new Date().toISOString(),
+    });
   }
 
   private emitEvent(event: IrisEvent): void {

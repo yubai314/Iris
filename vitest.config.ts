@@ -20,6 +20,7 @@ export default defineConfig({
       "@iris/react": resolve(root, "packages/react/src/index.tsx"),
       "@iris/test-utils": resolve(root, "packages/test-utils/src/index.ts"),
       "@iris/mcp": resolve(root, "packages/mcp/src/index.ts"),
+      "@iris/std": resolve(root, "packages/std/src/index.ts"),
       "@iris/devtools": resolve(root, "packages/devtools/src/index.tsx"),
     },
   },
