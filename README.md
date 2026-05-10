@@ -1,8 +1,9 @@
+<div align="center">
 <img src="assets/banner.png" alt="Iris" width="660" />
 
-# Iris
+<h1>Iris</h1>
 
-**in-app runtime interface for semantic control** · a GUI-to-agent command translator
+<p><strong>in-app runtime interface for semantic control</strong> · a GUI-to-agent command translator</p>
 
 <!-- Tech Stack -->
 <p>
@@ -31,7 +32,8 @@
 <img src="https://img.shields.io/github/repo-size/yubai314/Iris?style=flat-square" alt="Repo Size" />
 </p>
 
-[Features](#three-layers-of-computer-use) · [Packages](#whats-in-the-iris-kit) · [Install](#tauri-integration-first-version)
+<p><a href="#three-layers-of-computer-use">Features</a> · <a href="#whats-in-the-iris-kit">Packages</a> · <a href="#tauri-integration-first-version">Install</a></p>
+</div>
 
 ---
 
